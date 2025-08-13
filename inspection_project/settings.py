@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',                             
+    # 'corsheaders',                             
   
     'inspection'
 ]
@@ -81,10 +81,16 @@ WSGI_APPLICATION = 'inspection_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'inspection_db',  # DB name you set during creation
+        'USER': 'admin',  # Master username
+        'PASSWORD': 'Patanjal123',  # Master password
+        'HOST': 'mydb-dev.curwi0aeerw6.us-east-1.rds.amazonaws.com',  # Endpoint
+        'PORT': '3306',
+      
     }
 }
+
 
 
 # Password validation
