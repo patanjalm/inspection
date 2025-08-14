@@ -35,3 +35,4 @@ Thumbs.db
 # Migrations (optional: only if you don't want to commit them yet)
 # */migrations/*.py
 # !*/migrations/__init__.py
+venv/
