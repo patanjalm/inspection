@@ -1,71 +1,54 @@
 from django.db import models
-from django.contrib.auth.models import (
-    AbstractBaseUser, PermissionsMixin, BaseUserManager
-)
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 USER_TYPE_CHOICES = (
-    (1, "Admin"),
-    (2, "Teacher"),
-    (3, "Student"),
+    (1, "SuperAdmin"),
+    (2, "Admin"),
+    (3, "User"),
 )
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, username=None, password=None, **extra_fields):
+    def create_user(self, email, mobile_no, full_name, user_type, password=None, **extra_fields):
         if not email:
-            raise ValueError("The email must be set")
+            raise ValueError("Email is required")
+        if not mobile_no:
+            raise ValueError("Mobile number is required")
+
         email = self.normalize_email(email)
-        extra_fields.setdefault("is_active", True)
-       
-        user = self.model(email=email, username=username, **extra_fields)
-        if password:
-            user.set_password(password)
-        else:
-            user.set_unusable_password()
+        user = self.model(
+            email=email,
+            mobile_no=mobile_no,
+            full_name=full_name,
+            user_type=user_type,
+            **extra_fields
+        )
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, username=None, **extra_fields):
-
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-
-
-        if not extra_fields.get("is_superuser"):
-            raise ValueError("Superuser must have is_superuser=True.")
-
-        return self.create_user(email=email, username=username, password=password, **extra_fields)
-
+  
+        return self.create_user(email=email, mobile_no="0000000000", full_name="Admin", user_type=1, password=password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=255, unique=True)
-    username = models.CharField(max_length=150, unique=True, null=True, blank=True)
-    full_name = models.CharField(max_length=250, blank=True)
-    mobile_no = models.CharField(max_length=20, null=True, blank=True, unique=True)
+    email = models.EmailField(unique=True)
+    mobile_no = models.CharField(max_length=20, unique=True)
+    full_name = models.CharField(max_length=255)
+    user_type = models.PositiveSmallIntegerField(choices=USER_TYPE_CHOICES)
 
     is_active = models.BooleanField(default=True)
-    isApproved = models.BooleanField(default=False)
-
+  
     createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
-
-    user_type = models.PositiveSmallIntegerField(choices=USER_TYPE_CHOICES, null=True, blank=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = ["mobile_no", "full_name", "user_type"]
 
     objects = CustomUserManager()
 
     class Meta:
         db_table = "users"
-        indexes = [
-            models.Index(fields=["email"]),
-            models.Index(fields=["username"]),
-        ]
+        unique_together = ("email", "user_type")  # extra validation
 
     def __str__(self):
-        return self.email or str(self.pk)
-
-    def save(self, *args, **kwargs):
-        if not self.full_name and self.username:
-            self.full_name = self.username
-        super().save(*args, **kwargs)
+        return f"{self.full_name} ({self.email})"
