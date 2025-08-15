@@ -23,3 +23,12 @@ class LoginUser(APIView):
         if user:
             return Response({"message": "Login successful!"}, status=status.HTTP_200_OK)
         return Response({"error": "Invalid email or password"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    
+    
+class TestAPi(APIView):
+    def get(self, request):
+        
+        return Response({"message": "Tested"}, status=status.HTTP_200_OK)
+       
