@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .serializers import RegisterSerializer
-from .models import User
+from .serializers import RegisterSerializer,ProjectSerializer,UserSerializer,UserTaskListSerializer,UserTagListSerializer
+from .models import User,Project,UserTaskList
 
 class RegisterUser(APIView):
     def post(self, request):
@@ -27,8 +27,189 @@ class LoginUser(APIView):
     
     
     
-class TestAPi(APIView):
+class ProjectList(APIView):
     def get(self, request):
+        project_queryset = Project.objects.all()
         
-        return Response({"message": "Tested"}, status=status.HTTP_200_OK)
+        if project_queryset.exists():  # Check if any projects exist
+            serializer = ProjectSerializer(project_queryset, many=True)
+            return Response({
+                "message": "Projects fetched successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        return Response({"message": "No projects found."}, status=status.HTTP_404_NOT_FOUND)
+       
+class UserApprovalList(APIView):
+    def get(self, request):
+        user_queryset = User.objects.filter(user_type__in = [2,3]).order_by('-createdAt')
+        
+        if user_queryset.exists():  # Check if any projects exist
+            serializer = UserSerializer(user_queryset, many=True)
+            return Response({
+                "message": "User fetched successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        return Response({"message": "No projects found."}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+    
+class ActivateUser(APIView):
+    def put(self, request):
+        userId = request.data.get("userId")
+        action = request.data.get("action")
+        
+        User.objects.filter(id = userId).update(is_active = action)
+        
+
+        return Response({
+            "message": "updated successfully!",
+   
+        }, status=status.HTTP_200_OK)
+        
+        
+class AssignProjectToAdmin(APIView):
+    def put(self, request):
+        userId = request.data.get("userId")
+        projectId = request.data.get("projectId")
+        
+        User.objects.filter(id = userId).update(projectId = projectId)
+        
+
+        return Response({
+            "message": "updated successfully!",
+   
+        }, status=status.HTTP_200_OK)
+        
+        
+        
+
+class AdminProjectfilter(APIView):
+    def get(self, request):
+        userId = request.GET.get("userId")
+
+        
+        userObj = User.objects.filter(id = userId).first()
+        projectIdList = userObj.projectId
+        
+        result = []
+        for i in projectIdList:
+            proObj = Project.objects.filter(id = i).first()
+            result.append({proObj.id:proObj.name})
+            
+        
+
+        return Response({
+            "message": "found successfully!",
+            "filterList":result
+   
+        }, status=status.HTTP_200_OK)
+        
+        
+    
+class UploadTaskImage(APIView):
+    def post(self, request):
+        userId = request.data.get("userId")
+        projectId = request.data.get("projectId")  # Required if project field is mandatory
+        latLng = request.data.get("latLng")
+        uploadedImage = request.data.get("uploadedImage")
+        templateImage = request.data.get("templateImage")
+
+        userObj = User.objects.filter(id=userId).first()
+        if not userObj:
+            return Response({"error": "Invalid userId"}, status=status.HTTP_400_BAD_REQUEST)
+
+        projectObj = Project.objects.filter(id=projectId).first() if projectId else None
+        if not projectObj:
+            return Response({"error": "Invalid projectId"}, status=status.HTTP_400_BAD_REQUEST)
+
+        userTaskObj = UserTaskList.objects.create(
+            uploadedImage=uploadedImage,
+            templateImage=templateImage,
+            latLng=latLng,
+            uploadedUser=userObj,
+            project=projectObj
+        )
+
+        return Response({
+            "message": "Created successfully!",
+            "taskId": userTaskObj.id
+        }, status=status.HTTP_200_OK)
+
+        
+    
+
+class GetTaskDetails(APIView):
+    def get(self, request):
+        taskId = request.GET.get("taskId")
+
+     
+        userTaskObj = UserTaskList.objects.filter(
+            id = taskId
+        ).first()
+
+        serializer = UserTaskListSerializer(userTaskObj)
+
+        return Response({
+                "message": "Data fetched successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        
+        
+class AddTag(APIView):
+    def post(self, request):
+        taskId = request.data.get("taskId")
+        newMarkTag = request.data.get("markTag")  # This should be a dict
+
+        userTaskObj = UserTaskList.objects.filter(id=taskId).first()
+        if not userTaskObj:
+            return Response({"error": "Invalid taskId"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Ensure markTag is a list
+        if userTaskObj.markTag is None:
+            userTaskObj.markTag = []
+
+        # Append the new tag
+        userTaskObj.markTag.append(newMarkTag)
+        userTaskObj.save()
+
+        return Response({
+            "message": "Updated successfully!",
+            
+        }, status=status.HTTP_200_OK)
+        
+        
+        
+    def get(self, request):
+        taskId = request.GET.get("taskId")
+ 
+
+        userTaskObj = UserTaskList.objects.filter(id=taskId).first()
+        print(userTaskObj)
+        if not userTaskObj:
+            return Response({"error": "Invalid taskId"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+        serializer = UserTagListSerializer(userTaskObj)
+
+        return Response({
+                "message": "Data fetched successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        
+        
+    
+
+
+        
+    
+
+    
+    
+    
+    
        

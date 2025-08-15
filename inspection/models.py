@@ -40,6 +40,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
   
     createdAt = models.DateTimeField(auto_now_add=True)
+    
+    projectId= models.JSONField(null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["mobile_no", "full_name", "user_type"]
@@ -52,3 +54,24 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.full_name} ({self.email})"
+
+
+class Project(models.Model):
+    name = models.CharField(max_length=500, null=True)
+    
+    class Meta:
+        db_table = 'project'
+        
+        
+class UserTaskList(models.Model):
+    uploadedImage = models.CharField(max_length=500, null=True, blank=True)
+    templateImage = models.CharField(max_length=500, null=True, blank=True)
+    markTag = models.JSONField(null=True, blank=True)  # Expected format: {lat, lng, comment, createdAt}
+    latLng = models.JSONField(null=True, blank=True)   # Expected format: {lat, lng}
+
+    uploadedUser = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'userTaskList'

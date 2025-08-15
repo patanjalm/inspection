@@ -1,9 +1,17 @@
 # inspection/urls.py
 from django.urls import path
-from .views import RegisterUser, LoginUser,TestAPi
+from .views import RegisterUser, LoginUser,ProjectList,UserApprovalList
+from .views import *
 
 urlpatterns = [
     path("registerUser/", RegisterUser.as_view(), name="register"),
     path("login/", LoginUser.as_view(), name="login"),
-    path("testAPi/", TestAPi.as_view(), name="testAPi"),
+    path("projectList/", ProjectList.as_view(), name="projectList"),
+    path("userApprovalList/", UserApprovalList.as_view(), name="userApprovalList"),
+    path("activateUser/", ActivateUser.as_view(), name="activateUser"),
+    path("assignProjectToAdmin/", AssignProjectToAdmin.as_view(), name="assignProjectToAdmin"),
+    path("adminProjectfilter/", AdminProjectfilter.as_view(), name="adminProjectfilter"),
+    path("uploadTaskImage/", UploadTaskImage.as_view(), name="uploadTaskImage"),
+    path("getTaskDetails/", GetTaskDetails.as_view(), name="getTaskDetails"),
+    path("addTag/", AddTag.as_view(), name="addTag"),
 ]
