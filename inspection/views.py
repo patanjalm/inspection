@@ -89,23 +89,24 @@ class AdminProjectfilter(APIView):
     def get(self, request):
         userId = request.GET.get("userId")
 
-        
-        userObj = User.objects.filter(id = userId).first()
-        projectIdList = userObj.projectId
-        
-        result = []
-        for i in projectIdList:
-            proObj = Project.objects.filter(id = i).first()
-            result.append({proObj.id:proObj.name})
+        if userId:
+            userObj = User.objects.filter(id=userId).first()
+            if not userObj:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
             
-        
+            projectIds = userObj.projectId
+            projects = Project.objects.filter(id__in=projectIds)
+        else:
+            projects = Project.objects.all()
+
+        # Prepare filter list
+        result = [{proj.id: proj.name} for proj in projects]
 
         return Response({
             "message": "found successfully!",
-            "filterList":result
-   
+            "filterList": result
         }, status=status.HTTP_200_OK)
-        
+
         
     
 class UploadTaskImage(APIView):
@@ -155,6 +156,43 @@ class GetTaskDetails(APIView):
                 "message": "Data fetched successfully!",
                 "data": serializer.data
             }, status=status.HTTP_200_OK)
+        
+
+
+class GetHomeTask(APIView):
+    def get(self, request):
+        projectId = request.GET.get("projectId")
+        userId = request.GET.get("userId")
+
+        if projectId:
+            project = Project.objects.filter(id=projectId).first()
+            if not project:
+                return Response({"message": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            userTasks = UserTaskList.objects.filter(project=project)
+            serializer = UserTaskListSerializer(userTasks, many=True)
+            return Response({"message": "Data fetched successfully!", "data": serializer.data})
+
+        if userId:
+            user = User.objects.filter(id=userId).first()
+            if not user:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            if user.user_type == 2:  # assigned projects
+                projects = Project.objects.filter(id__in=user.projectId)
+                userTasks = UserTaskList.objects.filter(project__in=projects)
+            else:  # user_type == 1, all projects
+                projects = Project.objects.all()
+                userTasks = UserTaskList.objects.filter(project__in=projects)
+
+            serializer = UserTaskListSerializer(userTasks, many=True)
+            return Response({"message": "Data fetched successfully!", "data": serializer.data})
+
+        return Response({"message": "Provide projectId or userId"}, status=status.HTTP_400_BAD_REQUEST)
+              
+            
+                
+            
         
         
         
