@@ -218,6 +218,43 @@ class GetHomeTask(APIView):
             if user.user_type == 2:  # assigned projects
                 projects = Project.objects.filter(id__in=user.projectId)
                 userTasks = UserTaskList.objects.filter(project__in=projects)
+                
+            if user.user_type == 2:
+                userTasks = UserTaskList.objects.filter(uploadedUser=user)
+            else:  # user_type == 1, all projects
+                projects = Project.objects.all()
+                userTasks = UserTaskList.objects.filter(project__in=projects)
+
+            serializer = UserTaskListSerializer(userTasks, many=True)
+            return Response({"message": "Data fetched successfully!", "data": serializer.data})
+
+        return Response({"message": "Provide projectId or userId"}, status=status.HTTP_400_BAD_REQUEST)
+              
+            
+                
+class GetUserHomeTask(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        projectId = request.GET.get("projectId")
+        userId = request.GET.get("userId")
+
+        if projectId:
+            project = Project.objects.filter(id=projectId).first()
+            if not project:
+                return Response({"message": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            userTasks = UserTaskList.objects.filter(project=project)
+            serializer = UserTaskListSerializer(userTasks, many=True)
+            return Response({"message": "Data fetched successfully!", "data": serializer.data})
+
+        if userId:
+            user = User.objects.filter(id=userId).first()
+            if not user:
+                return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            if user.user_type == 2:  # assigned projects
+                projects = Project.objects.filter(id__in=user.projectId)
+                userTasks = UserTaskList.objects.filter(project__in=projects)
             else:  # user_type == 1, all projects
                 projects = Project.objects.all()
                 userTasks = UserTaskList.objects.filter(project__in=projects)
