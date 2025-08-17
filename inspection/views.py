@@ -4,30 +4,60 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from .serializers import RegisterSerializer,ProjectSerializer,UserSerializer,UserTaskListSerializer,UserTagListSerializer
 from .models import User,Project,UserTaskList
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+
 
 class RegisterUser(APIView):
+    permission_classes = [AllowAny] 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User registered successfully!"}, status=status.HTTP_201_CREATED)
+            user = serializer.save()   # create user
+            tokens = get_tokens_for_user(user)
+            user_data = UserSerializer(user).data  # serialize user data
+
+            return Response({
+                "message": "User registered successfully!",
+                "tokens": tokens,
+                "user": user_data
+            }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginUser(APIView):
+    permission_classes = [AllowAny] 
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
 
         user = authenticate(request, email=email, password=password)
         if user:
-            return Response({"message": "Login successful!"}, status=status.HTTP_200_OK)
+            tokens = get_tokens_for_user(user)
+            user_data = UserSerializer(user).data
+
+            return Response({
+                "message": "Login successful!",
+                "tokens": tokens,
+                "user": user_data
+            }, status=status.HTTP_200_OK)
+
         return Response({"error": "Invalid email or password"}, status=status.HTTP_400_BAD_REQUEST)
     
     
     
-    
 class ProjectList(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         project_queryset = Project.objects.all()
         
@@ -41,6 +71,7 @@ class ProjectList(APIView):
         return Response({"message": "No projects found."}, status=status.HTTP_404_NOT_FOUND)
        
 class UserApprovalList(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         user_queryset = User.objects.filter(user_type__in = [2,3]).order_by('-createdAt')
         
@@ -56,6 +87,7 @@ class UserApprovalList(APIView):
     
     
 class ActivateUser(APIView):
+    permission_classes = [AllowAny]
     def put(self, request):
         userId = request.data.get("userId")
         action = request.data.get("action")
@@ -70,6 +102,7 @@ class ActivateUser(APIView):
         
         
 class AssignProjectToAdmin(APIView):
+    permission_classes = [AllowAny]
     def put(self, request):
         userId = request.data.get("userId")
         projectId = request.data.get("projectId")
@@ -86,6 +119,7 @@ class AssignProjectToAdmin(APIView):
         
 
 class AdminProjectfilter(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         userId = request.GET.get("userId")
 
@@ -110,6 +144,7 @@ class AdminProjectfilter(APIView):
         
     
 class UploadTaskImage(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         userId = request.data.get("userId")
         projectId = request.data.get("projectId")  # Required if project field is mandatory
@@ -142,6 +177,7 @@ class UploadTaskImage(APIView):
     
 
 class GetTaskDetails(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         taskId = request.GET.get("taskId")
 
@@ -160,6 +196,7 @@ class GetTaskDetails(APIView):
 
 
 class GetHomeTask(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         projectId = request.GET.get("projectId")
         userId = request.GET.get("userId")
@@ -197,6 +234,7 @@ class GetHomeTask(APIView):
         
         
 class AddTag(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         taskId = request.data.get("taskId")
         newMarkTag = request.data.get("markTag")  # This should be a dict
