@@ -219,7 +219,7 @@ class GetHomeTask(APIView):
                 projects = Project.objects.filter(id__in=user.projectId)
                 userTasks = UserTaskList.objects.filter(project__in=projects)
                 
-            if user.user_type == 2:
+            if user.user_type == 3:
                 userTasks = UserTaskList.objects.filter(uploadedUser=user)
             else:  # user_type == 1, all projects
                 projects = Project.objects.all()
