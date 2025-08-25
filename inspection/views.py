@@ -129,7 +129,11 @@ class AdminProjectfilter(APIView):
                 return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
             
             projectIds = userObj.projectId
-            projects = Project.objects.filter(id__in=projectIds)
+            
+            if not projectIds:  # handles None, empty list, or empty string
+                projects = Project.objects.none()  # return empty queryset
+            else:
+                projects = Project.objects.filter(id__in=projectIds)
         else:
             projects = Project.objects.all()
 
