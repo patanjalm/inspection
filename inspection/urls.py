@@ -14,6 +14,7 @@ urlpatterns = [
     path("uploadTaskImage/", UploadTaskImage.as_view(), name="uploadTaskImage"),
     path("getTaskDetails/", GetTaskDetails.as_view(), name="getTaskDetails"),
     path("getHomeTask/", GetHomeTask.as_view(), name="getHomeTask"),
+    path("deleteTask/", DeleteTask.as_view(), name="deleteTask"),
     path("getUserHomeTask/", GetUserHomeTask.as_view(), name="getUserHomeTask"),
     path("addTag/", AddTag.as_view(), name="addTag"),
 ]

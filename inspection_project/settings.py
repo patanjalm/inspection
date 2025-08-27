@@ -114,8 +114,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'inspection_db',  # DB name you set during creation
         'USER': 'admin',  # Master username
-        'PASSWORD': 'Patanjal123',  # Master password
-        'HOST': 'mydb-dev.curwi0aeerw6.us-east-1.rds.amazonaws.com',  # Endpoint
+        'PASSWORD': 'nZc7uL14zGc4lFwbv5zs',  # Master password
+        'HOST': 'inspection-db.cjkm0y0wwlig.ap-south-1.rds.amazonaws.com',  # Endpoint
         'PORT': '3306',
       
     }

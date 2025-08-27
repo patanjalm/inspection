@@ -322,14 +322,24 @@ class AddTag(APIView):
         
         
         
-    
+class DeleteTask(APIView):
+    permission_classes = [AllowAny]
 
+    def delete(self, request):
+        task_id = request.data.get("taskId")  # safer than request.POST
 
-        
-    
+        if not task_id:
+            return Response({
+                "error": "taskId is required."
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-    
-    
-    
-    
-       
+        deleted_count, _ = UserTaskList.objects.filter(id=task_id).delete()
+
+        if deleted_count == 0:
+            return Response({
+                "error": "Task not found."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            "message": "Deleted successfully!"
+        }, status=status.HTTP_200_OK)
