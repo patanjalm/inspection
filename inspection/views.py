@@ -343,3 +343,35 @@ class DeleteTask(APIView):
         return Response({
             "message": "Deleted successfully!"
         }, status=status.HTTP_200_OK)
+
+
+
+class DeleteTag(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        taskId = request.data.get("taskId")
+        lat = request.data.get("lat")
+        lng = request.data.get("lng")
+
+        userTaskObj = UserTaskList.objects.filter(id=taskId).first()
+        if not userTaskObj:
+            return Response({"error": "Invalid taskId"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not userTaskObj.markTag:
+            return Response({"error": "No tags found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Filter out the tag to delete
+        new_tags = [tag for tag in userTaskObj.markTag 
+                    if not (str(tag.get("lat")) == str(lat) and str(tag.get("lng")) == str(lng))]
+
+        if len(new_tags) == len(userTaskObj.markTag):
+            return Response({"error": "Tag not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        userTaskObj.markTag = new_tags
+        userTaskObj.save()
+
+        return Response({
+            "message": "Tag deleted successfully!",
+            "remainingTags": userTaskObj.markTag
+        }, status=status.HTTP_200_OK)

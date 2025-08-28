@@ -17,4 +17,5 @@ urlpatterns = [
     path("deleteTask/", DeleteTask.as_view(), name="deleteTask"),
     path("getUserHomeTask/", GetUserHomeTask.as_view(), name="getUserHomeTask"),
     path("addTag/", AddTag.as_view(), name="addTag"),
+    path("deleteTag/", DeleteTag.as_view(), name="deleteTag"),
 ]
