@@ -31,6 +31,8 @@ ALLOWED_HOSTS = ['*']
 CORS_ALLOW_ALL_ORIGINS = True   
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 
 
 CORS_ALLOW_HEADERS = default_headers + (
@@ -50,14 +52,16 @@ CORS_ALLOW_METHODS = [
 
 
 CORS_ALLOWED_ORIGINS = [
-"https://cozy-genie-39bf3d.netlify.app",
 "http://localhost:8000",
 "http://127.0.0.1:8000",
 "http://localhost:3000",
 "http://127.0.0.1:3000",
+"https://admin.prstrc.in/"
 
 ]
 
+
+BASE_URL = 'https://admin.prstrc.in/'
 
 # Application definition
 
