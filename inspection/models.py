@@ -58,6 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Project(models.Model):
     name = models.CharField(max_length=500, null=True)
+    isDeleted = models.BooleanField(null=True,default=False)
     
     class Meta:
         db_table = 'project'
@@ -69,8 +70,8 @@ class UserTaskList(models.Model):
     markTag = models.JSONField(null=True, blank=True)  # Expected format: {lat, lng, comment, createdAt}
     latLng = models.JSONField(null=True, blank=True)   # Expected format: {lat, lng}
 
-    uploadedUser = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    uploadedUser = models.ForeignKey(User, on_delete=models.SET_NULL,null=True,blank=True)
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL,null=True,blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
 
     class Meta:

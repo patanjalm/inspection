@@ -7,6 +7,7 @@ urlpatterns = [
     path("registerUser/", RegisterUser.as_view(), name="register"),
     path("login/", LoginUser.as_view(), name="login"),
     path("projectList/", ProjectList.as_view(), name="projectList"),
+    path("addProject/", AddProject.as_view(), name="addProject"),
     path("userApprovalList/", UserApprovalList.as_view(), name="userApprovalList"),
     path("activateUser/", ActivateUser.as_view(), name="activateUser"),
     path("assignProjectToAdmin/", AssignProjectToAdmin.as_view(), name="assignProjectToAdmin"),

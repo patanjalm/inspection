@@ -59,7 +59,7 @@ class LoginUser(APIView):
 class ProjectList(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        project_queryset = Project.objects.all()
+        project_queryset = Project.objects.filter(isDeleted = False)
         
         if project_queryset.exists():  # Check if any projects exist
             serializer = ProjectSerializer(project_queryset, many=True)
@@ -69,6 +69,61 @@ class ProjectList(APIView):
             }, status=status.HTTP_200_OK)
         
         return Response({"message": "No projects found."}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+class AddProject(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        project_queryset = Project.objects.filter(isDeleted = False)
+        
+        if project_queryset.exists():  # Check if any projects exist
+            serializer = ProjectSerializer(project_queryset, many=True)
+            return Response({
+                "message": "Projects fetched successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        return Response({"message": "No projects found."}, status=status.HTTP_404_NOT_FOUND)
+
+        
+    def post(self, request):
+        projectName = request.data.get("projectName")
+        project = Project.objects.create(name = projectName)
+        
+        return Response({
+            "message": "Projects Created successfully!",
+           
+        }, status=status.HTTP_200_OK)
+        
+        
+    def put(self, request):
+        projectId = request.data.get("projectId")
+        project = Project.objects.filter(id = projectId).update(isDeleted = True)
+        
+        
+        users = User.objects.filter(projectId__contains=[projectId])
+        for user in users:
+            if user.projectId and projectId in user.projectId:
+                user.projectId.remove(projectId)
+                user.save(update_fields=["projectId"])
+                
+                
+        UserTaskList.objects.filter(project_id=projectId).update(project=None)
+        UserTaskList.objects.filter(project_id=projectId).update(uploadedUser=None)
+      
+        
+        return Response({
+            "message": "Projects Deleted successfully!",
+            
+        }, status=status.HTTP_200_OK)
+        
+    
+        
+     
+    
+    
+    
        
 class UserApprovalList(APIView):
     permission_classes = [AllowAny]
@@ -133,9 +188,9 @@ class AdminProjectfilter(APIView):
             if not projectIds:  # handles None, empty list, or empty string
                 projects = Project.objects.none()  # return empty queryset
             else:
-                projects = Project.objects.filter(id__in=projectIds)
+                projects = Project.objects.filter(id__in=projectIds,isDeleted = False)
         else:
-            projects = Project.objects.all()
+            projects = Project.objects.filter(isDeleted = False)
 
         # Prepare filter list
         result = [{proj.id: proj.name} for proj in projects]
@@ -220,7 +275,7 @@ class GetHomeTask(APIView):
                 return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if user.user_type == 2:  # assigned projects
-                projects = Project.objects.filter(id__in=user.projectId)
+                projects = Project.objects.filter(id__in=user.projectId,isDeleted = False)
                 print(projects,"projects")
                 userTasks = UserTaskList.objects.filter(project__in=projects)
                 print(userTasks,"userTasks")
@@ -229,8 +284,8 @@ class GetHomeTask(APIView):
                 userTasks = UserTaskList.objects.filter(uploadedUser=user)
             else:  # user_type == 1, all projects
                 print("kjjjjjjjjjjjjjjjj")
-                projects = Project.objects.all()
-                userTasks = UserTaskList.objects.filter(project__in=projects)
+                # projects = Project.objects.filter(isDeleted = False)
+                userTasks = UserTaskList.objects.all()
 
             serializer = UserTaskListSerializer(userTasks, many=True)
             return Response({"message": "Data fetched successfully!", "data": serializer.data})
@@ -256,15 +311,16 @@ class GetUserHomeTask(APIView):
 
         if userId:
             user = User.objects.filter(id=userId).first()
+            print(user.user_type,"user.user_type")
             if not user:
                 return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if user.user_type == 2:  # assigned projects
-                projects = Project.objects.filter(id__in=user.projectId)
+                projects = Project.objects.filter(id__in=user.projectId,isDeleted = False)
                 userTasks = UserTaskList.objects.filter(project__in=projects)
             else:  # user_type == 1, all projects
-                projects = Project.objects.all()
-                userTasks = UserTaskList.objects.filter(project__in=projects)
+                # projects = Project.objects.filter(isDeleted = False)
+                userTasks = UserTaskList.objects.all()
 
             serializer = UserTaskListSerializer(userTasks, many=True)
             return Response({"message": "Data fetched successfully!", "data": serializer.data})
