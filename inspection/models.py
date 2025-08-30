@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 USER_TYPE_CHOICES = (
@@ -59,6 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Project(models.Model):
     name = models.CharField(max_length=500, null=True)
     isDeleted = models.BooleanField(null=True,default=False)
+    createdAt = models.DateTimeField(default=now, editable=False, null=True)
     
     class Meta:
         db_table = 'project'
